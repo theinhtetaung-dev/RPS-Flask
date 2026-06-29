@@ -8,204 +8,174 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+
   <style>
-    /* ── Reset & Tokens ──────────────────────────────────────────────────────── */
+    /* ── Reset ────────────────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:          #080a18;
-      --card:        #10132a;
-      --card2:       #181b38;
-      --border:      #252850;
-      --accent:      #7c6ef5;
-      --accent-glow: rgba(124,110,245,.3);
-      --gold:        #f5c76e;
-      --green:       #4ade80;
-      --red:         #f87171;
-      --blue:        #60a5fa;
-      --txt:         #eef0ff;
-      --muted:       #7b80b0;
-      --font:        'Outfit', sans-serif;
-      --r:           14px;
-      --rs:          8px;
+      --bg:       #080a18;
+      --card:     #10132a;
+      --card2:    #181b38;
+      --border:   #252850;
+      --accent:   #7c6ef5;
+      --aglow:    rgba(124,110,245,.28);
+      --green:    #4ade80;
+      --red:      #f87171;
+      --gold:     #f5c76e;
+      --txt:      #eef0ff;
+      --muted:    #6b71a0;
+      --r:        12px;
+      --rs:       8px;
+      --font:     'Outfit', sans-serif;
     }
 
     html, body {
       height: 100%;
-      overflow: hidden;          /* NO SCROLL */
+      overflow: hidden;       /* ← single page, NO scroll */
       background: var(--bg);
       color: var(--txt);
       font-family: var(--font);
     }
 
-    /* ── Animated grid background ────────────────────────────────────────────── */
+    /* animated dot-grid backdrop */
     body::before {
       content: '';
-      position: fixed; inset: 0;
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background-image:
-        linear-gradient(rgba(124,110,245,.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(124,110,245,.05) 1px, transparent 1px);
-      background-size: 44px 44px;
-      pointer-events: none; z-index: 0;
+        radial-gradient(circle, rgba(124,110,245,.18) 1px, transparent 1px);
+      background-size: 32px 32px;
     }
 
-    /* ── Page Shell ──────────────────────────────────────────────────────────── */
+    /* ── Shell: header + game-area + footer stacked to 100vh ──────────────── */
     .shell {
       position: relative; z-index: 1;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 10px 14px 10px;
+      display: grid;
+      grid-template-rows: 52px 1fr 28px;
+      padding: 8px 12px;
       gap: 8px;
     }
 
-    /* ── Header ──────────────────────────────────────────────────────────────── */
+    /* ════════════════════════════ HEADER ══════════════════════════════════════ */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-shrink: 0;
-      height: 44px;
-      padding: 0 4px;
     }
 
     .logo {
       display: flex; align-items: center; gap: 10px;
     }
-
-    .logo-icon {
-      font-size: 1.5rem;
-      line-height: 1;
-    }
-
+    .logo-icon { font-size: 1.4rem; line-height: 1; }
     .logo-text {
-      font-size: 1.15rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      font-size: 1.1rem; font-weight: 800;
+      background: linear-gradient(120deg, #fff 30%, var(--accent));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .score-strip {
+    .scores {
       display: flex; gap: 6px;
     }
-
-    .score-pill {
+    .sc {
+      display: flex; align-items: center; gap: 5px;
       background: var(--card2);
       border: 1px solid var(--border);
       border-radius: 999px;
-      padding: 4px 14px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      display: flex; gap: 6px; align-items: center;
+      padding: 3px 12px;
+      font-size: 0.78rem; font-weight: 700;
     }
+    .sc .l { color: var(--muted); font-weight: 400; font-size: .72rem; }
+    .sc.w .v { color: var(--green); }
+    .sc.d .v { color: var(--gold); }
+    .sc.lo .v { color: var(--red); }
 
-    .score-pill .lbl { color: var(--muted); font-weight: 400; }
-    .score-pill .val { color: var(--txt); }
-    .score-pill.win  .val { color: var(--green); }
-    .score-pill.lose .val { color: var(--red);   }
-    .score-pill.draw .val { color: var(--gold);  }
-
-    /* ── Main Game Area ──────────────────────────────────────────────────────── */
+    /* ════════════════════════════ GAME AREA ═══════════════════════════════════ */
     .game-area {
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr 300px;
       gap: 10px;
-      flex: 1;
-      min-height: 0;          /* allow grid to shrink inside flex */
+      min-height: 0;           /* allow grid row to shrink */
     }
 
-    /* ── Left: Video Column ──────────────────────────────────────────────────── */
-    .video-col {
+    /* ── Left column ─────────────────────────────────────────────────────────── */
+    .left-col {
       display: flex;
       flex-direction: column;
       gap: 8px;
       min-height: 0;
     }
 
-    .video-wrapper {
+    /* Video wrapper fills remaining height */
+    .video-wrap {
       position: relative;
+      flex: 1;
+      min-height: 0;
       border-radius: var(--r);
       overflow: hidden;
       border: 1px solid var(--border);
-      box-shadow: 0 0 0 1px rgba(124,110,245,.15), 0 8px 32px rgba(0,0,0,.5);
       background: #06071a;
-      flex: 1;
-      min-height: 0;
+      box-shadow: 0 0 0 1px rgba(124,110,245,.12), 0 8px 30px rgba(0,0,0,.5);
     }
 
     #video-feed {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
     }
 
-    /* Gesture pill over video */
-    .gesture-overlay {
-      position: absolute;
-      bottom: 12px; left: 50%; transform: translateX(-50%);
-      background: rgba(8,10,24,.75);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 6px 20px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
-      white-space: nowrap;
-      transition: color .2s;
-    }
-
-    .gesture-overlay .hand-emoji { font-size: 1.2rem; }
-
-    /* Live dot */
-    .live-badge {
+    /* LIVE badge */
+    .live {
       position: absolute; top: 10px; right: 12px;
       display: flex; align-items: center; gap: 5px;
-      background: rgba(8,10,24,.7);
+      background: rgba(8,10,24,.72);
       border: 1px solid rgba(255,255,255,.1);
       backdrop-filter: blur(6px);
       border-radius: 999px;
       padding: 3px 10px;
-      font-size: 0.65rem;
-      font-weight: 700; letter-spacing: .08em;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: .1em;
       color: #ff4f4f;
     }
-
     .live-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
+      width: 6px; height: 6px; border-radius: 50%;
       background: #ff4f4f;
       animation: blink 1.2s ease-in-out infinite;
     }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
-    @keyframes blink {
-      0%,100%{opacity:1} 50%{opacity:.2}
+    /* Player gesture pill (bottom center of video) */
+    .gesture-pill {
+      position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(8,10,24,.78);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 5px 18px;
+      font-size: 0.88rem; font-weight: 700;
+      white-space: nowrap;
     }
+    .gesture-pill .pe { font-size: 1.1rem; }
 
-    /* ── Gesture Hint Bar ────────────────────────────────────────────────────── */
-    .hint-bar {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
+    /* Hint chips row */
+    .hint-row {
+      display: flex; gap: 6px; flex-shrink: 0;
     }
-
-    .hint-chip {
+    .chip {
       flex: 1;
       background: var(--card2);
       border: 1px solid var(--border);
       border-radius: var(--rs);
-      padding: 6px 8px;
+      padding: 5px 6px;
       text-align: center;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1px;
     }
+    .chip .ce { font-size: 1.05rem; }
+    .chip .cn { font-weight: 700; color: var(--txt); }
+    .chip .ck { color: var(--muted); font-size: 0.62rem; }
 
-    .hint-chip .hc-emoji { font-size: 1.1rem; display: block; }
-    .hint-chip .hc-name  { font-weight: 700; color: var(--txt); }
-    .hint-chip .hc-note  { color: var(--muted); font-size: 0.65rem; }
-
-    /* ── Right: Game Panel ───────────────────────────────────────────────────── */
+    /* ── Right column (Panel) ──────────────────────────────────────────────── */
     .panel {
       display: flex;
       flex-direction: column;
@@ -213,287 +183,185 @@
       min-height: 0;
     }
 
-    .card {
+    /* ── AI Card ───────────────────────────────────────────────────────────── */
+    .ai-card {
+      flex: 1;
+      min-height: 0;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: var(--r);
-      padding: 14px;
-    }
-
-    /* AI Choice Card */
-    .ai-card {
-      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
       text-align: center;
       position: relative;
       overflow: hidden;
     }
-
     .ai-card::before {
       content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(124,110,245,.15), transparent 70%);
-      pointer-events: none;
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 50% 0%, rgba(124,110,245,.18), transparent 65%);
     }
 
-    .ai-label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      color: var(--muted);
-      font-weight: 700;
+    .ai-lbl {
+      font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: .13em; color: var(--muted); font-weight: 700;
     }
 
-    .ai-emoji {
-      font-size: 4.5rem;
-      line-height: 1;
-      transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s;
+    .ai-em {
+      font-size: 4.2rem; line-height: 1;
       display: block;
     }
-
-    .ai-emoji.reveal {
-      animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+    .ai-em.pop {
+      animation: popIn .38s cubic-bezier(.34,1.56,.64,1) both;
     }
-
     @keyframes popIn {
-      from { transform: scale(0.3) rotate(-20deg); opacity: 0; }
-      to   { transform: scale(1)   rotate(0deg);   opacity: 1; }
+      from { transform: scale(.2) rotate(-25deg); opacity: 0; }
+      to   { transform: scale(1)  rotate(0deg);   opacity: 1; }
     }
 
-    .ai-name {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: var(--txt);
-      min-height: 1.6rem;
+    .ai-nm {
+      font-size: 1.35rem; font-weight: 800; min-height: 1.5rem;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
     }
 
-    .ai-thinking {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-    }
-
-    .dot-pulse span {
+    /* dot-pulse thinking indicator */
+    .dots span {
       display: inline-block;
-      width: 7px; height: 7px;
-      border-radius: 50%;
+      width: 7px; height: 7px; border-radius: 50%;
       background: var(--accent);
-      animation: dotBounce 1s ease-in-out infinite;
+      animation: bounce 1s ease-in-out infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: .15s; }
+    .dots span:nth-child(3) { animation-delay: .30s; }
+    @keyframes bounce {
+      0%,80%,100%{ transform: scale(.65); opacity:.4; }
+      40%        { transform: scale(1);   opacity:1;  }
     }
 
-    .dot-pulse span:nth-child(2) { animation-delay: .15s; }
-    .dot-pulse span:nth-child(3) { animation-delay: .30s; }
-
-    @keyframes dotBounce {
-      0%,80%,100%{ transform: scale(.7); opacity:.5; }
-      40%         { transform: scale(1);  opacity:1; }
-    }
-
-    /* Result Banner */
-    .result-banner {
+    /* ── Result Banner ─────────────────────────────────────────────────────── */
+    .banner {
+      flex-shrink: 0;
       border-radius: var(--rs);
-      padding: 12px;
+      padding: 11px 10px;
       text-align: center;
-      font-size: 1.6rem;
-      font-weight: 900;
-      letter-spacing: .06em;
-      transition: all .3s;
-      border: 2px solid transparent;
-      min-height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .result-banner.idle {
-      background: var(--card2);
-      border-color: var(--border);
-      color: var(--muted);
-      font-size: 0.8rem;
-      font-weight: 400;
-    }
-
-    .result-banner.win  { background: rgba(74,222,128,.12); border-color: var(--green); color: var(--green); }
-    .result-banner.lose { background: rgba(248,113,113,.12); border-color: var(--red);   color: var(--red);   }
-    .result-banner.draw { background: rgba(245,199,110,.12); border-color: var(--gold);  color: var(--gold);  }
-
-    .result-banner.countdown {
-      background: rgba(124,110,245,.12);
-      border-color: var(--accent);
-      color: var(--accent);
-      font-size: 2.2rem;
-      font-weight: 900;
-      animation: countPulse .5s ease-in-out;
-    }
-
-    @keyframes countPulse {
-      0%  { transform: scale(1.25); opacity:.6; }
-      100%{ transform: scale(1);    opacity:1;  }
-    }
-
-    /* Play Button */
-    .play-btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: var(--rs);
-      font-family: var(--font);
-      font-size: 1rem;
-      font-weight: 800;
+      font-size: 1.45rem; font-weight: 900;
       letter-spacing: .05em;
-      cursor: pointer;
-      background: linear-gradient(135deg, var(--accent), #a78bfa);
-      color: #fff;
-      box-shadow: 0 4px 20px var(--accent-glow);
-      transition: transform .15s, box-shadow .15s, opacity .15s;
-      flex-shrink: 0;
+      border: 2px solid transparent;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 52px;
     }
+    .banner.idle  { background: var(--card2); border-color: var(--border); color: var(--muted); font-size: .78rem; font-weight: 400; }
+    .banner.cd    { background: rgba(124,110,245,.12); border-color: var(--accent); color: var(--accent); font-size: 2rem; font-weight: 900; animation: pulse .45s ease-out; }
+    .banner.win   { background: rgba(74,222,128,.1);   border-color: var(--green); color: var(--green); }
+    .banner.lose  { background: rgba(248,113,113,.1);  border-color: var(--red);   color: var(--red);   }
+    .banner.draw  { background: rgba(245,199,110,.1);  border-color: var(--gold);  color: var(--gold);  }
+    .banner.err   { background: rgba(248,113,113,.08); border-color: var(--red);   color: var(--red); font-size: .82rem; font-weight: 600; }
 
-    .play-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px var(--accent-glow);
+    @keyframes pulse {
+      0%  { transform: scale(1.2); opacity: .5; }
+      100%{ transform: scale(1);   opacity: 1;  }
     }
-
-    .play-btn:active:not(:disabled) { transform: translateY(0); }
-
-    .play-btn:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-    }
-
-    /* ── VS divider ──────────────────────────────────────────────────────────── */
-    .vs-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .vs-row hr { flex: 1; border: none; border-top: 1px solid var(--border); }
-    .vs-row span { font-size: 0.65rem; font-weight: 700; letter-spacing: .12em; color: var(--muted); }
-
-    /* ── Instruction footer ──────────────────────────────────────────────────── */
-    footer {
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.68rem;
-      color: var(--muted);
-      gap: 16px;
-      height: 20px;
-    }
-
-    footer span { opacity: .6; }
-
-    /* ── Shake animation for error ───────────────────────────────────────────── */
     @keyframes shake {
       0%,100%{ transform: translateX(0); }
-      20%    { transform: translateX(-6px); }
-      40%    { transform: translateX(6px); }
-      60%    { transform: translateX(-4px); }
-      80%    { transform: translateX(4px); }
+      20%    { transform: translateX(-5px); }
+      40%    { transform: translateX(5px); }
+      60%    { transform: translateX(-3px); }
+      80%    { transform: translateX(3px); }
     }
+    .shake { animation: shake .38s ease-in-out; }
 
-    .shake { animation: shake .4s ease-in-out; }
+    /* ── Play Button ───────────────────────────────────────────────────────── */
+    .play-btn {
+      flex-shrink: 0;
+      width: 100%; padding: 13px;
+      border: none; border-radius: var(--rs);
+      font-family: var(--font); font-size: .95rem; font-weight: 800;
+      letter-spacing: .06em; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
+      color: #fff;
+      box-shadow: 0 4px 18px var(--aglow);
+      transition: transform .15s, box-shadow .15s, opacity .15s;
+    }
+    .play-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 26px var(--aglow); }
+    .play-btn:active:not(:disabled){ transform: translateY(0); }
+    .play-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ════════════════════════════ FOOTER ══════════════════════════════════════ */
+    footer {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px;
+      font-size: 0.64rem; color: var(--muted); opacity: .7;
+    }
   </style>
 </head>
 <body>
 
 <div class="shell">
 
-  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <!-- ════ HEADER ═══════════════════════════════════════════════════════════ -->
   <header>
     <div class="logo">
       <span class="logo-icon">🖐</span>
       <span class="logo-text">Rock · Paper · Scissors</span>
     </div>
 
-    <div class="score-strip">
-      <div class="score-pill win">
-        <span class="lbl">W</span>
-        <span class="val" id="score-win">0</span>
-      </div>
-      <div class="score-pill draw">
-        <span class="lbl">D</span>
-        <span class="val" id="score-draw">0</span>
-      </div>
-      <div class="score-pill lose">
-        <span class="lbl">L</span>
-        <span class="val" id="score-lose">0</span>
-      </div>
+    <div class="scores">
+      <div class="sc w"><span class="l">WIN</span><span class="v" id="sw">0</span></div>
+      <div class="sc d"><span class="l">DRAW</span><span class="v" id="sd">0</span></div>
+      <div class="sc lo"><span class="l">LOSE</span><span class="v" id="sl">0</span></div>
     </div>
   </header>
 
-  <!-- ── Game Area ─────────────────────────────────────────────────────────── -->
+  <!-- ════ GAME AREA ════════════════════════════════════════════════════════ -->
   <div class="game-area">
 
-    <!-- LEFT: camera feed -->
-    <div class="video-col">
-      <div class="video-wrapper">
-        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    <!-- LEFT: webcam -->
+    <div class="left-col">
+
+      <div class="video-wrap">
+        <div class="live"><div class="live-dot"></div>LIVE</div>
+
         <img id="video-feed"
              src="{{ url_for('video_feed') }}"
-             alt="Live webcam with hand gesture overlay" />
+             alt="Live webcam with hand landmark overlay" />
 
-        <!-- Player gesture overlay pill -->
-        <div class="gesture-overlay">
-          <span class="hand-emoji" id="player-emoji">🤚</span>
-          <span id="player-label">Show your hand…</span>
+        <div class="gesture-pill">
+          <span class="pe" id="p-emoji">🤚</span>
+          <span id="p-label">Show your hand…</span>
         </div>
       </div>
 
-      <!-- Gesture hint chips -->
-      <div class="hint-bar">
-        <div class="hint-chip">
-          <span class="hc-emoji">✊</span>
-          <span class="hc-name">Rock</span>
-          <span class="hc-note">0 fingers</span>
-        </div>
-        <div class="hint-chip">
-          <span class="hc-emoji">✌️</span>
-          <span class="hc-name">Scissors</span>
-          <span class="hc-note">2 fingers</span>
-        </div>
-        <div class="hint-chip">
-          <span class="hc-emoji">✋</span>
-          <span class="hc-name">Paper</span>
-          <span class="hc-note">5 fingers</span>
-        </div>
+      <!-- hint chips -->
+      <div class="hint-row">
+        <div class="chip"><span class="ce">✊</span><span class="cn">Rock</span><span class="ck">All fingers closed</span></div>
+        <div class="chip"><span class="ce">✌️</span><span class="cn">Scissors</span><span class="ck">2 fingers open</span></div>
+        <div class="chip"><span class="ce">✋</span><span class="cn">Paper</span><span class="ck">All 5 open</span></div>
       </div>
-    </div>
+
+    </div><!-- /left-col -->
 
     <!-- RIGHT: game panel -->
     <div class="panel">
 
-      <!-- AI Choice card -->
-      <div class="card ai-card" id="ai-card">
-        <div class="ai-label">🤖 AI's Choice</div>
-        <span class="ai-emoji" id="ai-emoji">🤔</span>
-        <div class="ai-name" id="ai-name">
-          <div class="ai-thinking" id="ai-thinking" style="display:none">
-            <div class="dot-pulse">
-              <span></span><span></span><span></span>
-            </div>
+      <!-- AI Choice -->
+      <div class="ai-card" id="ai-card">
+        <div class="ai-lbl">🤖 &nbsp;AI's Choice</div>
+        <span class="ai-em" id="ai-em">🤔</span>
+        <div class="ai-nm" id="ai-nm">
+          <span id="ai-txt">Waiting…</span>
+          <div class="dots" id="ai-dots" style="display:none">
+            <span></span><span></span><span></span>
           </div>
-          <span id="ai-choice-text">Waiting…</span>
         </div>
       </div>
 
-      <!-- VS divider -->
-      <div class="vs-row"><hr/><span>VS</span><hr/></div>
+      <!-- Result -->
+      <div class="banner idle" id="banner">Press Play to start</div>
 
-      <!-- Result banner -->
-      <div class="result-banner idle" id="result-banner">
-        Press Play to start a round
-      </div>
-
-      <!-- Play button -->
+      <!-- CTA -->
       <button class="play-btn" id="play-btn" onclick="startRound()">
         ▶ &nbsp;Play Now
       </button>
@@ -502,199 +370,119 @@
 
   </div><!-- /game-area -->
 
-  <!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+  <!-- ════ FOOTER ═══════════════════════════════════════════════════════════ -->
   <footer>
-    <span>Show your hand gesture when the countdown ends</span>
+    <span>Hold your gesture steady when GO! appears</span>
     <span>·</span>
-    <span>Powered by Flask · MediaPipe · OpenCV</span>
+    <span>Flask · MediaPipe · OpenCV</span>
   </footer>
 
 </div><!-- /shell -->
 
 <script>
-  // ── Score Tracking ──────────────────────────────────────────────────────────
-  const score = { win: 0, lose: 0, draw: 0 };
+  /* ── Score state ─────────────────────────────────────────────────────────── */
+  const score = { win: 0, draw: 0, lose: 0 };
 
-  function updateScore(result) {
-    if (result === 'WIN')  { score.win++;  document.getElementById('score-win').textContent  = score.win;  }
-    if (result === 'LOSE') { score.lose++; document.getElementById('score-lose').textContent = score.lose; }
-    if (result === 'DRAW') { score.draw++; document.getElementById('score-draw').textContent = score.draw; }
+  function addScore(r) {
+    if (r === 'WIN')  { score.win++;  document.getElementById('sw').textContent = score.win;  }
+    if (r === 'DRAW') { score.draw++; document.getElementById('sd').textContent = score.draw; }
+    if (r === 'LOSE') { score.lose++; document.getElementById('sl').textContent = score.lose; }
   }
 
-  // ── Gesture polling ─────────────────────────────────────────────────────────
-  const GESTURE_EMOJIS = { Rock: '✊', Scissors: '✌️', Paper: '✋', 'No Hand': '🤚', Unknown: '❓' };
+  /* ── Gesture polling (every 300 ms) ─────────────────────────────────────── */
+  const G_EMOJI = { Rock:'✊', Scissors:'✌️', Paper:'✋', 'No Hand':'🤚', Unknown:'❓' };
 
-  let pollTimer = null;
-
-  function startGesturePoll() {
-    if (pollTimer) return;
-    pollTimer = setInterval(async () => {
-      try {
-        const res  = await fetch('/current_gesture');
-        const data = await res.json();
-        const g    = data.gesture;
-        document.getElementById('player-emoji').textContent = GESTURE_EMOJIS[g] || '🤚';
-        document.getElementById('player-label').textContent = g === 'No Hand' ? 'Show your hand…' : g;
-      } catch (_) {}
-    }, 250);
-  }
-
-  startGesturePoll();
-
-  // ── Round Logic ─────────────────────────────────────────────────────────────
-  let roundActive = false;
-
-  async function startRound() {
-    if (roundActive) return;
-    roundActive = true;
-
-    const btn    = document.getElementById('play-btn');
-    const banner = document.getElementById('result-banner');
-    const aiEmoji= document.getElementById('ai-emoji');
-    const aiText = document.getElementById('ai-choice-text');
-
-    btn.disabled = true;
-
-    // Reset AI panel to "thinking"
-    aiEmoji.className = 'ai-emoji';
-    aiEmoji.textContent = '🤔';
-    aiText.textContent = '';
-    document.getElementById('ai-thinking').style.display = 'flex';
-    banner.className = 'result-banner idle';
-    banner.textContent = '';
-
-    // ── Countdown: 3, 2, 1, GO! ──────────────────────────────────────────────
-    const steps = ['3', '2', '1', '✋ GO!'];
-    for (const step of steps) {
-      banner.className = 'result-banner countdown';
-      banner.textContent = step;
-      // Re-trigger animation by cloning
-      const clone = banner.cloneNode(true);
-      banner.replaceWith(clone);
-      banner.replaceWith = undefined; // reference is stale, re-grab
-      await sleep(800);
-    }
-
-    // Re-grab banner after DOM swap
-    const freshBanner = document.getElementById('result-banner');
-
-    // ── Resolve ───────────────────────────────────────────────────────────────
+  setInterval(async () => {
     try {
-      const res  = await fetch('/resolve');
+      const { gesture } = await (await fetch('/current_gesture')).json();
+      document.getElementById('p-emoji').textContent = G_EMOJI[gesture] ?? '🤚';
+      document.getElementById('p-label').textContent =
+        (gesture === 'No Hand' || gesture === 'Unknown') ? 'Show your hand…' : gesture;
+    } catch (_) {}
+  }, 300);
 
-      if (!res.ok) {
-        // No valid hand
-        document.getElementById('ai-thinking').style.display = 'none';
-        aiText.textContent = '—';
-        freshBanner.className = 'result-banner idle shake';
-        freshBanner.textContent = '⚠️  No hand detected — try again!';
-        aiEmoji.textContent = '❌';
-      } else {
-        const data = await res.json();
+  /* ── Helpers ─────────────────────────────────────────────────────────────── */
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-        // Show AI choice with pop animation
-        document.getElementById('ai-thinking').style.display = 'none';
-        aiText.textContent = data.ai_name;
-        aiEmoji.textContent = data.ai_emoji;
-        aiEmoji.className   = 'ai-emoji reveal';
-
-        // Show result
-        const cfg = {
-          WIN:  { cls: 'win',  text: '🎉 You WIN!' },
-          LOSE: { cls: 'lose', text: '💀 You LOSE!' },
-          DRAW: { cls: 'draw', text: '🤝 DRAW!' },
-        }[data.result] || { cls: 'idle', text: '?' };
-
-        freshBanner.className   = `result-banner ${cfg.cls}`;
-        freshBanner.textContent = cfg.text;
-
-        updateScore(data.result);
-      }
-    } catch (e) {
-      freshBanner.className = 'result-banner idle';
-      freshBanner.textContent = 'Connection error — try again!';
-    }
-
-    await sleep(1200);
-    btn.disabled  = false;
-    roundActive   = false;
+  function setBanner(cls, text) {
+    const b = document.getElementById('banner');
+    b.className = '';            // strip classes → reflow → re-add (re-triggers animation)
+    void b.offsetWidth;
+    b.className = `banner ${cls}`;
+    b.textContent = text;
   }
 
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  /* ── Game round ──────────────────────────────────────────────────────────── */
+  let busy = false;
 
-  // ── Fix: replace cloneNode approach (simpler re-trigger via re-class) ───────
-  // Override startRound with a cleaner version that avoids DOM replace issues
   async function startRound() {
-    if (roundActive) return;
-    roundActive = true;
+    if (busy) return;
+    busy = true;
 
-    const btn    = document.getElementById('play-btn');
-    const banner = document.getElementById('result-banner');
-    const aiEmoji= document.getElementById('ai-emoji');
-    const aiName = document.getElementById('ai-name');
-    const aiText = document.getElementById('ai-choice-text');
-    const aiThink= document.getElementById('ai-thinking');
+    const btn   = document.getElementById('play-btn');
+    const aiEm  = document.getElementById('ai-em');
+    const aiTxt = document.getElementById('ai-txt');
+    const aiDot = document.getElementById('ai-dots');
 
     btn.disabled = true;
 
-    // Reset
-    aiEmoji.className   = 'ai-emoji';
-    aiEmoji.textContent = '🤔';
-    aiText.textContent  = '';
-    aiThink.style.display = 'flex';
-    banner.className    = 'result-banner idle';
-    banner.textContent  = '';
+    /* reset AI panel */
+    aiEm.className  = 'ai-em';
+    aiEm.textContent = '🤔';
+    aiTxt.textContent = '';
+    aiDot.style.display = 'flex';
+    setBanner('idle', '');
 
-    // Countdown
-    for (const step of ['3', '2', '1', '✋ GO!']) {
-      banner.className = '';
-      // Force reflow to restart CSS animation
-      void banner.offsetWidth;
-      banner.className    = 'result-banner countdown';
-      banner.textContent  = step;
-      await sleep(800);
+    /* ── countdown ──────────────────────────────────────────────────────────── */
+    for (const step of ['3', '2', '1', '✋  GO!']) {
+      setBanner('cd', step);
+      await sleep(820);
     }
 
-    // Resolve
+    /* ── call /resolve ───────────────────────────────────────────────────────── */
     try {
       const res = await fetch('/resolve');
 
+      aiDot.style.display = 'none';
+
       if (!res.ok) {
-        aiThink.style.display = 'none';
-        aiText.textContent    = '—';
-        aiEmoji.textContent   = '❌';
-        banner.className      = '';
-        void banner.offsetWidth;
-        banner.className      = 'result-banner idle shake';
-        banner.textContent    = '⚠️  No hand detected — try again!';
+        /* no valid hand detected */
+        aiEm.textContent  = '❌';
+        aiTxt.textContent = 'No hand';
+        const b = document.getElementById('banner');
+        b.className = '';
+        void b.offsetWidth;
+        b.className   = 'banner err shake';
+        b.textContent = '⚠️  No hand detected — try again!';
       } else {
-        const data = await res.json();
+        const { player, ai_name, ai_emoji, result } = await res.json();
 
-        aiThink.style.display = 'none';
-        aiText.textContent    = data.ai_name;
-        aiEmoji.className     = '';
-        void aiEmoji.offsetWidth;
-        aiEmoji.className     = 'ai-emoji reveal';
-        aiEmoji.textContent   = data.ai_emoji;
+        /* reveal AI choice */
+        aiEm.className = '';
+        void aiEm.offsetWidth;
+        aiEm.className   = 'ai-em pop';
+        aiEm.textContent  = ai_emoji;
+        aiTxt.textContent = ai_name;
 
-        const cfg = {
-          WIN:  { cls: 'win',  text: '🎉 You WIN!' },
-          LOSE: { cls: 'lose', text: '💀 You LOSE!' },
-          DRAW: { cls: 'draw', text: '🤝 DRAW!' },
-        }[data.result] || { cls: 'idle', text: '?' };
-
-        banner.className      = `result-banner ${cfg.cls}`;
-        banner.textContent    = cfg.text;
-        updateScore(data.result);
+        /* result banner */
+        const MAP = {
+          WIN:  ['win',  '🎉  You WIN!'],
+          LOSE: ['lose', '💀  You LOSE!'],
+          DRAW: ['draw', '🤝  DRAW!'],
+        };
+        const [cls, text] = MAP[result] ?? ['idle', '?'];
+        setBanner(cls, text);
+        addScore(result);
       }
+
     } catch (_) {
-      banner.className  = 'result-banner idle';
-      banner.textContent = 'Connection error — try again!';
+      document.getElementById('ai-dots').style.display = 'none';
+      setBanner('err', 'Connection error — try again!');
     }
 
-    await sleep(1400);
+    await sleep(1600);
     btn.disabled = false;
-    roundActive  = false;
+    busy = false;
   }
 </script>
 
