@@ -49,23 +49,75 @@ AI_CHOICES = [
 
 # ── Gesture helpers ────────────────────────────────────────────────────────────
 
+def get_hand_orientation(landmarks) -> str:
+    """
+    Determine if the hand is roughly vertical or horizontal.
+    Compares the wrist (0) to middle-finger MCP (9) vector.
+    Returns 'vertical' when fingers point up/down,
+            'horizontal' when fingers point left/right.
+    """
+    wrist = landmarks[0]
+    mid_mcp = landmarks[9]   # base of middle finger
+
+    dx = abs(mid_mcp.x - wrist.x)
+    dy = abs(mid_mcp.y - wrist.y)
+
+    # If the hand's length runs more along x than y → horizontal
+    return "horizontal" if dx > dy else "vertical"
+
+
 def count_open_fingers(landmarks, handedness_label: str) -> int:
-    """Count extended fingers. Thumb uses x-axis; others use y-axis."""
+    """
+    Count extended fingers.
+    - Vertical hand  (✋): fingers extend upward  → use y-axis comparison.
+    - Horizontal hand (🫱): fingers extend sideways → use x-axis comparison.
+    The thumb always uses the opposite axis to the fingers.
+    """
     open_count = 0
+    orientation = get_hand_orientation(landmarks)
 
-    # Thumb (x-axis — moves horizontally)
-    # After mirroring, physical Right hand → 'Left' label in MediaPipe
-    if handedness_label == "Left":
-        if landmarks[THUMB_TIP].x < landmarks[THUMB_IP].x:
-            open_count += 1
+    if orientation == "vertical":
+        # ── Vertical mode (original logic) ────────────────────────────────
+        # Thumb: x-axis (moves left/right when hand is upright)
+        # After mirroring, physical Right hand → 'Left' label in MediaPipe
+        if handedness_label == "Left":
+            if landmarks[THUMB_TIP].x < landmarks[THUMB_IP].x:
+                open_count += 1
+        else:
+            if landmarks[THUMB_TIP].x > landmarks[THUMB_IP].x:
+                open_count += 1
+
+        # Index–Pinky: tip above pip in image coords (y decreases upward)
+        for tip_id, pip_id in zip(FINGER_TIPS, FINGER_PIPS):
+            if landmarks[tip_id].y < landmarks[pip_id].y:
+                open_count += 1
+
     else:
-        if landmarks[THUMB_TIP].x > landmarks[THUMB_IP].x:
-            open_count += 1
+        # ── Horizontal mode (🫱 / 🫲) ──────────────────────────────────────
+        # Fingers point sideways, so extension is along the x-axis.
+        # Determine which direction the fingers point:
+        #   wrist x < mid_mcp x  → fingers point RIGHT
+        #   wrist x > mid_mcp x  → fingers point LEFT
+        fingers_point_right = landmarks[9].x > landmarks[0].x
 
-    # Index, Middle, Ring, Pinky (y decreases upward in image coords)
-    for tip_id, pip_id in zip(FINGER_TIPS, FINGER_PIPS):
-        if landmarks[tip_id].y < landmarks[pip_id].y:
-            open_count += 1
+        # Thumb: now extends along y-axis when hand is horizontal
+        if fingers_point_right:
+            # Right-pointing hand: thumb tip above thumb IP
+            if landmarks[THUMB_TIP].y < landmarks[THUMB_IP].y:
+                open_count += 1
+        else:
+            # Left-pointing hand: thumb tip below thumb IP
+            if landmarks[THUMB_TIP].y > landmarks[THUMB_IP].y:
+                open_count += 1
+
+        # Index–Pinky: tip further along x than pip
+        for tip_id, pip_id in zip(FINGER_TIPS, FINGER_PIPS):
+            if fingers_point_right:
+                if landmarks[tip_id].x > landmarks[pip_id].x:
+                    open_count += 1
+            else:
+                if landmarks[tip_id].x < landmarks[pip_id].x:
+                    open_count += 1
 
     return open_count
 
