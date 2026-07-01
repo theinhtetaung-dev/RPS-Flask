@@ -2,6 +2,8 @@ import cv2
 import mediapipe as mp
 import random
 import os
+import serial
+import serial.tools.list_ports
 from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision as mp_vision
 from mediapipe.tasks.python.vision import drawing_utils as mp_drawing
@@ -10,6 +12,54 @@ from flask import Flask, Response, render_template, jsonify
 
 # Flask App
 app = Flask(__name__)
+
+# Arduino Serial Configuration
+arduino_serial = None
+DEFAULT_PORT = "COM3"
+
+def get_arduino_port():
+    ports = list(serial.tools.list_ports.comports())
+    for p in ports:
+        desc = p.description.lower()
+        hwid = p.hwid.lower()
+        if "arduino" in desc or "ch340" in desc or "usb" in desc or "serial" in desc:
+            return p.device
+    if ports:
+        return ports[0].device
+    return None
+
+def send_to_arduino(user_choice, ai_choice):
+    global arduino_serial
+    # Try to initialize if not currently connected
+    if arduino_serial is None:
+        port = get_arduino_port() or DEFAULT_PORT
+        try:
+            arduino_serial = serial.Serial(port, 9600, timeout=0.1, write_timeout=0.1)
+            print(f"Connected to Arduino on port: {port}")
+        except Exception as e:
+            # Silence error to prevent console spam, app runs fine without Arduino
+            pass
+
+    if arduino_serial and arduino_serial.is_open:
+        try:
+            message = f"{user_choice},{ai_choice}\n"
+            arduino_serial.write(message.encode('utf-8'))
+            print(f"Sent to Arduino: {message.strip()}")
+            
+            # Wait briefly for Arduino to process and reply
+            import time
+            time.sleep(0.1)
+            while arduino_serial.in_waiting > 0:
+                response = arduino_serial.readline().decode('utf-8', errors='ignore').strip()
+                if response:
+                    print(f"  [Arduino Output]: {response}")
+        except Exception as e:
+            print(f"Error sending/receiving data: {e}")
+            try:
+                arduino_serial.close()
+            except:
+                pass
+            arduino_serial = None
 
 # MediaPipe Hand Landmarker (Tasks API >= 0.10)
 MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hand_landmarker.task")
@@ -249,6 +299,10 @@ def resolve():
 
     ai = random.choice(AI_CHOICES)
     result = determine_result(player, ai["name"])
+
+    # Send choices to Arduino
+    send_to_arduino(player, ai["name"])
+
     return jsonify({
         "player":    player,
         "ai_name":   ai["name"],
